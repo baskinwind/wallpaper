@@ -6,24 +6,25 @@ import { createApi } from 'unsplash-js';
 
 import { TRACK } from './schema.js';
 
-const wallpaper = new Hono();
+type Bindings = {
+  WALLPAPER_AK: string;
+  WALLPAPER_COLLECTIONS: string;
+};
 
-const WALLPAPER_AK = process.env.WALLPAPER_AK;
-const WALLPAPER_COLLECTIONS = process.env.WALLPAPER_COLLECTIONS;
-
-if (!WALLPAPER_AK) {
-  throw new Error('WALLPAPER_AK is required');
-}
-
-if (!WALLPAPER_COLLECTIONS) {
-  throw new Error('WALLPAPER_COLLECTIONS is required');
-}
-
-const unsplash = createApi({ accessKey: WALLPAPER_AK });
+const wallpaper = new Hono<{ Bindings: Bindings }>();
 
 wallpaper.get('/random', async (c) => {
+  const wallPaperAk = c.env.WALLPAPER_AK;
+  const wallPaperCollections = c.env.WALLPAPER_COLLECTIONS;
+
+  if (!wallPaperAk || !wallPaperCollections) {
+    return c.json({ message: 'WALLPAPER_AK and WALLPAPER_COLLECTIONS are required', success: false }, 500);
+  }
+
+  const unsplash = createApi({ accessKey: wallPaperAk });
+
   try {
-    const result = await unsplash.photos.getRandom({ count: 1, collectionIds: WALLPAPER_COLLECTIONS.split(',') });
+    const result = await unsplash.photos.getRandom({ count: 1, collectionIds: wallPaperCollections.split(',') });
 
     if (result.type === 'success') {
       const photo = (result.response as Random[])[0];
@@ -56,6 +57,14 @@ wallpaper.get('/random', async (c) => {
 });
 
 wallpaper.post('/track', zValidator('json', TRACK), async (c) => {
+  const wallPaperAk = c.env.WALLPAPER_AK;
+
+  if (!wallPaperAk) {
+    return c.json({ message: 'WALLPAPER_AK is required', success: false }, 500);
+  }
+
+  const unsplash = createApi({ accessKey: wallPaperAk });
+
   const urls = c.req.valid('json');
 
   const downloadUrls: string[] = [];

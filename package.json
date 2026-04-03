@@ -6,21 +6,20 @@
   "author": "baskwind <baskwind@163.com>",
   "scripts": {
     "lint": "eslint . --fix",
-    "dev": "NODE_ENV=development tsx watch ./index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "dev": "wrangler dev",
+    "build": "tsc --noEmit",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.11",
     "@hono/zod-validator": "^0.7.6",
-    "dotenv": "^17.4.0",
     "hono": "^4.12.8",
     "unsplash-js": "^7.0.20",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@cloudflare/workers-types": "^4.20260330.0",
     "typescript": "^5.7.0",
-    "eslint": "9.39.4"
+    "eslint": "9.39.4",
+    "wrangler": "^4.11.1"
   }
 }

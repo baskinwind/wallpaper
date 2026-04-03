@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
-    /* Module */
     "target": "esnext",
     "module": "esnext",
+    "lib": [ "esnext" ],
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "allowJs": true,
-
-    /* Linting */
+    "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
@@ -16,11 +14,10 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
 
-    "types": [ "node" ],
+    "types": [ "@cloudflare/workers-types" ],
 
-    "rootDir": "src",
-    "outDir": "dist"
+    "rootDir": "src"
   },
   "include": [ "src" ],
-  "exclude": [ "node_modules" ]
+  "exclude": [ "node_modules", "dist" ]
 }
