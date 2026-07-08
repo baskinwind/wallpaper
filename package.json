@@ -6,7 +6,7 @@
   "author": "baskwind <baskwind@163.com>",
   "scripts": {
     "lint": "eslint . --fix",
-    "build": "tsc --noEmit"
+    "build": "node scripts/generate-wallpaper-env.mjs && tsc --noEmit"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",

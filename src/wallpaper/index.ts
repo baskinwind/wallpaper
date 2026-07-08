@@ -6,6 +6,7 @@ import { Hono } from 'hono';
 import { env } from 'hono/adapter';
 import { createApi } from 'unsplash-js';
 
+import { generatedWallpaperEnv } from './generated-env.js';
 import { TRACK } from './schema.js';
 
 type Bindings = {
@@ -20,8 +21,8 @@ function getWallpaperEnv(c: Context<{ Bindings: Bindings }>): Partial<Bindings> 
   const processEnv = env<Partial<Bindings>>(c, 'edge-light') || {};
 
   return {
-    WALLPAPER_AK: bindings.WALLPAPER_AK ?? processEnv.WALLPAPER_AK,
-    WALLPAPER_COLLECTIONS: bindings.WALLPAPER_COLLECTIONS ?? processEnv.WALLPAPER_COLLECTIONS,
+    WALLPAPER_AK: bindings.WALLPAPER_AK ?? processEnv.WALLPAPER_AK ?? generatedWallpaperEnv.WALLPAPER_AK,
+    WALLPAPER_COLLECTIONS: bindings.WALLPAPER_COLLECTIONS ?? processEnv.WALLPAPER_COLLECTIONS ?? generatedWallpaperEnv.WALLPAPER_COLLECTIONS,
   };
 }
 

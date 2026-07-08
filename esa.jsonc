@@ -1,0 +1,6 @@
+{
+  "name": "wallpaper",
+  "entry": "./src/index.ts",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm run build"
+}
