@@ -1,7 +1,9 @@
 import type { Random } from 'unsplash-js/dist/methods/photos/types';
 
 import { zValidator } from '@hono/zod-validator';
+import type { Context } from 'hono';
 import { Hono } from 'hono';
+import { env } from 'hono/adapter';
 import { createApi } from 'unsplash-js';
 
 import { TRACK } from './schema.js';
@@ -13,9 +15,18 @@ type Bindings = {
 
 const wallpaper = new Hono<{ Bindings: Bindings }>();
 
+function getWallpaperEnv(c: Context<{ Bindings: Bindings }>): Partial<Bindings> {
+  const bindings = env<Partial<Bindings>>(c, 'workerd') || {};
+  const processEnv = env<Partial<Bindings>>(c, 'edge-light') || {};
+
+  return {
+    WALLPAPER_AK: bindings.WALLPAPER_AK ?? processEnv.WALLPAPER_AK,
+    WALLPAPER_COLLECTIONS: bindings.WALLPAPER_COLLECTIONS ?? processEnv.WALLPAPER_COLLECTIONS,
+  };
+}
+
 wallpaper.get('/random', async (c) => {
-  const wallPaperAk = c.env.WALLPAPER_AK;
-  const wallPaperCollections = c.env.WALLPAPER_COLLECTIONS;
+  const { WALLPAPER_AK: wallPaperAk, WALLPAPER_COLLECTIONS: wallPaperCollections } = getWallpaperEnv(c);
 
   if (!wallPaperAk || !wallPaperCollections) {
     return c.json({ message: 'WALLPAPER_AK and WALLPAPER_COLLECTIONS are required', success: false }, 500);
@@ -57,7 +68,7 @@ wallpaper.get('/random', async (c) => {
 });
 
 wallpaper.post('/track', zValidator('json', TRACK), async (c) => {
-  const wallPaperAk = c.env.WALLPAPER_AK;
+  const { WALLPAPER_AK: wallPaperAk } = getWallpaperEnv(c);
 
   if (!wallPaperAk) {
     return c.json({ message: 'WALLPAPER_AK is required', success: false }, 500);
