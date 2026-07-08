@@ -13,9 +13,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-
-    "types": [ "@cloudflare/workers-types" ],
-
     "rootDir": "src"
   },
   "include": [ "src" ],
