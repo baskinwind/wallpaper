@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { ExecutionContext } from 'hono';
 import { cors } from 'hono/cors';
 import { wallpaper } from './wallpaper.js';
+import { adminPage } from './admin.js';
 
 type Bindings = {
   WALLPAPER_AK: string;
@@ -22,6 +23,7 @@ app.use(
 );
 
 app.route('/wallpaper', wallpaper);
+app.get('/admin', (c) => c.html(adminPage));
 
 app.get('/health', (c) => c.json({ success: true }));
 

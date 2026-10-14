@@ -38,6 +38,47 @@ function getMirrorUrl(originalUrl: string, mirrorOrigin?: string): string | null
   return url.toString();
 }
 
+wallpaper.get('/list', zValidator('query', z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  collection: z.coerce.number().int().min(0).default(0),
+})), async (c) => {
+  const { WALLPAPER_AK, WALLPAPER_COLLECTIONS, WALLPAPER_MIRROR_ORIGIN } = c.env;
+  const collections = [...new Set((WALLPAPER_COLLECTIONS || '').split(',').map((id) => id.trim()).filter(Boolean))];
+  if (!WALLPAPER_AK || !collections.length) {
+    return c.json({ success: false, message: 'WALLPAPER_AK and WALLPAPER_COLLECTIONS are required' }, 500);
+  }
+  const { page, collection } = c.req.valid('query');
+  if (collection >= collections.length) {
+    return c.json({ success: false, message: 'Invalid collection index' }, 400);
+  }
+  try {
+    const api = createApi({ accessKey: WALLPAPER_AK });
+    const result = await api.GET('/collections/{collectionId}/photos', {
+      params: { path: { collectionId: collections[collection] }, query: { page, per_page: 30 } },
+    });
+    if (!result.data) {
+      return c.json({ success: false, message: 'Unsplash list request failed; check quota and collection access' }, 502);
+    }
+    const photos = result.data.map((photo) => {
+      const url = getImageUrl(photo.urls.regular);
+      return {
+        id: photo.id,
+        description: photo.description,
+        thumbnail: photo.urls.thumb,
+        url,
+        mirror_url: getMirrorUrl(url, WALLPAPER_MIRROR_ORIGIN),
+        link: photo.links.html,
+        user: { name: photo.user.name, link: photo.user.links.html },
+      };
+    });
+    const next = photos.length === 30 ? { collection, page: page + 1 }
+      : collection + 1 < collections.length ? { collection: collection + 1, page: 1 } : null;
+    return c.json({ success: true, data: { photos, next } });
+  } catch {
+    return c.json({ success: false, message: 'Unable to load wallpaper list' }, 502);
+  }
+});
+
 wallpaper.get('/random', async (c) => {
   const { WALLPAPER_AK: wallPaperAk, WALLPAPER_COLLECTIONS: wallPaperCollections } = c.env;
 
