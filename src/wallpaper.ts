@@ -12,6 +12,15 @@ type Bindings = {
 
 const wallpaper = new Hono<{ Bindings: Bindings }>();
 
+function getImageUrl(originalUrl: string): string {
+  const url = new URL(originalUrl);
+
+  // Preserve regular's parameters; apply the same pixel ratio to both origins.
+  url.searchParams.set('dpr', '2');
+
+  return url.toString();
+}
+
 function getMirrorUrl(originalUrl: string, mirrorOrigin?: string): string | null {
   if (!mirrorOrigin?.trim()) {
     return null;
@@ -57,7 +66,7 @@ wallpaper.get('/random', async (c) => {
         location?: AssetLocation;
       };
 
-      const imageUrl = photo.urls.regular;
+      const imageUrl = getImageUrl(photo.urls.regular);
 
       return c.json({
         data: {

@@ -45,7 +45,7 @@
 
 访问流程为：客户端请求七牛 CDN → Kodo 中没有文件时向 Unsplash 回源 → Kodo 保存图片 → 后续请求由七牛提供。
 
-Unsplash 直链和镜像图片统一使用 API 返回的 `photo.urls.regular`，不额外修改尺寸、质量或格式参数。`data.url` 原样返回该地址，`data.mirror_url` 仅替换协议和域名，两者路径和查询参数一致。
+Unsplash 直链和镜像图片统一使用 `photo.urls.regular`，仅设置 `dpr=2`，保留其尺寸、质量、格式和追踪等其他参数。例如 `regular` 中的 `w=1080` 配合 `dpr=2` 请求 2160 像素宽的图片。`data.url` 保留 Unsplash 域名，`data.mirror_url` 仅替换协议和域名，两者路径和查询参数一致。
 
 **Kodo 镜像文件按路径保存，不按查询参数保存不同版本。** 因此不要通过修改镜像 URL 参数请求不同尺寸。同一路径首次存入小图后，改成大图参数仍会返回原文件。以后调整规格，需要删除对应 Kodo 对象并刷新 CDN 缓存，再重新回源；仅刷新 CDN 不够。
 
@@ -68,8 +68,8 @@ Unsplash 直链和镜像图片统一使用 API 返回的 `photo.urls.regular`，
     "color": "#aabbcc",
     "slug": "example-photo",
     "description": "A landscape",
-    "url": "https://images.unsplash.com/photo-example?…",
-    "mirror_url": "https://img.example.com/photo-example?…",
+    "url": "https://images.unsplash.com/photo-example?…&fm=jpg&w=1080&dpr=2&q=80&fit=max",
+    "mirror_url": "https://img.example.com/photo-example?…&fm=jpg&w=1080&dpr=2&q=80&fit=max",
     "link": "https://unsplash.com/photos/example-photo",
     "download": "https://api.unsplash.com/photos/example/download?ixid=…",
     "user": {
