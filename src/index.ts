@@ -15,8 +15,9 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use(
   '*',
   cors({
-    origin: '*',
-    allowMethods: ['POST', 'GET', 'DELETE', 'PUT', 'OPTIONS'],
+    // Credentialed requests require a concrete origin, even when all origins are allowed.
+    origin: (origin) => origin,
+    allowMethods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     maxAge: 600,
     credentials: true,
   }),
