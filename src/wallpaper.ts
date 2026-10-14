@@ -12,20 +12,6 @@ type Bindings = {
 
 const wallpaper = new Hono<{ Bindings: Bindings }>();
 
-function getImageUrl(originalUrl: string): string {
-  const url = new URL(originalUrl);
-
-  // Keep Unsplash's tracking parameters, but avoid browser-dependent formats.
-  url.searchParams.delete('auto');
-  url.searchParams.delete('dpr');
-  url.searchParams.set('fm', 'jpg');
-  url.searchParams.set('w', '2160');
-  url.searchParams.set('q', '80');
-  url.searchParams.set('fit', 'crop');
-
-  return url.toString();
-}
-
 function getMirrorUrl(originalUrl: string, mirrorOrigin?: string): string | null {
   if (!mirrorOrigin?.trim()) {
     return null;
@@ -71,7 +57,7 @@ wallpaper.get('/random', async (c) => {
         location?: AssetLocation;
       };
 
-      const imageUrl = getImageUrl(photo.urls.regular);
+      const imageUrl = photo.urls.regular;
 
       return c.json({
         data: {
