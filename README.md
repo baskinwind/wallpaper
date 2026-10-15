@@ -30,6 +30,7 @@
 | 接口 | 说明 |
 | --- | --- |
 | `GET /health` | 健康检查，返回 `{"success":true}` |
+| `GET /debug/esa` | 临时查看 ESA 请求元数据和 IP/地域相关请求头 |
 | `GET /wallpaper/random` | 从配置的集合中随机获取一张壁纸 |
 | `GET /wallpaper/list?collection=0&page=1` | 分页获取图片，每页最多 30 张；`collection` 为集合索引，返回 `data.photos` 和下一页参数 `data.next`，结束时为 `null` |
 | `POST /wallpaper/track` | 提交下载追踪地址数组，返回 Unsplash 下载地址数组 |
@@ -41,7 +42,15 @@
 curl https://your-api.example.com/wallpaper/random
 ```
 
-成功响应的 `data` 包含 `url`（原图地址）、`mirror_url`（回源服务地址）、`download`（下载追踪地址），以及图片描述、作者、来源链接等信息。未配置回源地址时，`mirror_url` 为 `null`，客户端可用 `data.mirror_url ?? data.url` 获取图片地址。
+成功响应的 `data` 包含 `url`（原图地址）、`mirror_url`（回源服务地址）、`download`（下载追踪地址），以及图片描述、作者、来源链接等信息。未配置回源地址时，`mirror_url` 为 `null`。
+
+部署后可访问临时调试接口，确认 ESA 实际提供了哪些信息：
+
+```sh
+curl -sS https://your-api.example.com/debug/esa
+```
+
+返回的 `data.request_info` 为运行时的 `request.info`（不存在则为 `null`），`request_properties` 列出请求对象自身的属性名，`header_names` 列出收到的请求头名称，`headers` 仅包含 IP/地域相关请求头的值，不回显 Cookie、Authorization 或环境变量。接口不调用 Unsplash，无需配置密钥，响应设置 `Cache-Control: no-store`；请勿在 ESA 中强制缓存此路径。建议分别从大陆和境外网络访问，确认结果后删除调试接口，再实现 `prefer` 字段。
 
 用户触发下载时，将 `data.download` 原样放入数组提交，保留追踪参数：
 
