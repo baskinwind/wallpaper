@@ -11,6 +11,7 @@ type Bindings = {
 };
 
 const wallpaper = new Hono<{ Bindings: Bindings }>();
+const PAGE_SIZE = 30;
 
 function getImageUrl(originalUrl: string): string {
   const url = new URL(originalUrl);
@@ -54,7 +55,7 @@ wallpaper.get('/list', zValidator('query', z.object({
   try {
     const api = createApi({ accessKey: WALLPAPER_AK });
     const result = await api.GET('/collections/{collectionId}/photos', {
-      params: { path: { collectionId: collections[collection] }, query: { page, per_page: 30 } },
+      params: { path: { collectionId: collections[collection] }, query: { page, per_page: PAGE_SIZE } },
     });
     if (!result.data) {
       return c.json({ success: false, message: 'Unsplash list request failed; check quota and collection access' }, 502);
@@ -71,7 +72,9 @@ wallpaper.get('/list', zValidator('query', z.object({
         user: { name: photo.user.name, link: photo.user.links.html },
       };
     });
-    const next = photos.length === 30 ? { collection, page: page + 1 }
+    const totalPages = Number(result.response.headers.get('x-total-pages'));
+    const hasMore = totalPages > 0 ? page < totalPages : photos.length === PAGE_SIZE;
+    const next = hasMore ? { collection, page: page + 1 }
       : collection + 1 < collections.length ? { collection: collection + 1, page: 1 } : null;
     return c.json({ success: true, data: { photos, next } });
   } catch {
