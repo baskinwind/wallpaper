@@ -13,6 +13,19 @@ type Bindings = {
 const wallpaper = new Hono<{ Bindings: Bindings }>();
 const PAGE_SIZE = 30;
 
+function getPreferredCdn(request: Request, mirrorUrl: string | null): 'unsplash' | 'mirror' {
+  const { info } = request as Request & {
+    info?: { ip_country_id?: string; ip_region_id?: string };
+  };
+  const country = info?.ip_country_id?.trim().toUpperCase();
+  const region = info?.ip_region_id?.trim().toUpperCase();
+
+  // Use ESA's client metadata; unknown locations default to Unsplash.
+  return mirrorUrl && country === 'CN' && !['CN-HK', 'CN-MO', 'CN-TW'].includes(region ?? '')
+    ? 'mirror'
+    : 'unsplash';
+}
+
 function getImageUrl(originalUrl: string): string {
   const url = new URL(originalUrl);
 
@@ -83,6 +96,8 @@ wallpaper.get('/list', zValidator('query', z.object({
 });
 
 wallpaper.get('/random', async (c) => {
+  // CDN preference depends on the client, so responses must not be shared from cache.
+  c.header('Cache-Control', 'no-store');
   const { WALLPAPER_AK: wallPaperAk, WALLPAPER_COLLECTIONS: wallPaperCollections } = c.env;
 
   if (!wallPaperAk || !wallPaperCollections) {
@@ -111,6 +126,7 @@ wallpaper.get('/random', async (c) => {
       };
 
       const imageUrl = getImageUrl(photo.urls.regular);
+      const mirrorUrl = getMirrorUrl(imageUrl, c.env.WALLPAPER_MIRROR_ORIGIN);
 
       return c.json({
         data: {
@@ -118,7 +134,8 @@ wallpaper.get('/random', async (c) => {
           slug: details.slug,
           description: photo.description ?? details.alt_description,
           url: imageUrl,
-          mirror_url: getMirrorUrl(imageUrl, c.env.WALLPAPER_MIRROR_ORIGIN),
+          mirror_url: mirrorUrl,
+          prefer: getPreferredCdn(c.req.raw, mirrorUrl),
           link: photo.links.html,
           download: photo.links.download_location,
           user: {
